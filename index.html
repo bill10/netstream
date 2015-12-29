@@ -23,16 +23,26 @@ var socket = io.connect('http://localhost:5000');
 var s = new sigma('graph-container');
 s.startForceAtlas2();
 
-setInterval(function(){
-    socket.emit('GET','')
-}, 1000);
-
 socket.on('an',function(data){
-    console.log(data);
-    //s.graph.addNode({id: data.id, label: data.label, size: data.size});
-    //s.refresh();
-    //s.killForceAtlas2();
-    //s.startForceAtlas2();
-})
+    s.graph.addNode({id: data.id, label: data.label, size: data.size, x:data.x, y: data.y});
+    s.refresh();
+    s.killForceAtlas2();
+    s.startForceAtlas2();
+});
 
+socket.on('ae',function(data){
+    s.graph.addEdge({id: data.id, source: data.source, target: data.target});
+    s.refresh();
+    s.killForceAtlas2();
+    s.startForceAtlas2();
+});
+
+timer=setInterval(function(){
+    socket.emit('GET','')
+}, 500);
+
+socket.on('none',function(data){
+    s.stopForceAtlas2();
+    clearInterval(timer);
+});
 </script>
