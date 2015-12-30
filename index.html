@@ -1,6 +1,5 @@
-<!-- START SIGMA IMPORTS -->
+<link href="css/bootstrap.min.css" rel="stylesheet">
 
-<!-- END SIGMA IMPORTS -->
 <div id="container">
   <style>
     #graph-container {
@@ -10,19 +9,79 @@
       right: 0;
       position: absolute;
     }
+
+    span.large{
+        font-size: 1.5em;
+    }
   </style>
-  <h1> </h1>
+
   <div id="graph-container"></div>
+  <span id="play" class="large glyphicon glyphicon-play" aria-hidden="true"></span>
+  <span id="pause" class="large glyphicon glyphicon-pause" aria-hidden="true"></span>
+  <span id="slowdown" class="large glyphicon glyphicon-backward" aria-hidden="true"></span>
+  <span id="speed" class="large"></span>
+  <span id="speedup" class="large glyphicon glyphicon-forward" aria-hidden="true"></span>
+  <h1></h1>
 </div>
+
 <script src="js/socket.io.js"></script>
 <script src="js/sigma.min.js"></script>
 <script src="js/sigma.layout.forceAtlas2.min.js"></script>
 <script src="js/jquery-1.11.3.min.js"></script>
 
 <script>
-var edgeNode={x:0};
+var timer, interval=500, speedFactor=1;
 var socket = io.connect('http://localhost:5000');
 var s = new sigma('graph-container');
+var edgeNode={x:0};
+
+$("#pause").hide();
+$("#speedup").hide();
+$("#slowdown").hide();
+
+$("#play").click(function(){
+    $("#play").hide();
+    $("#pause").show();
+    $("#speedup").show();
+    $("#slowdown").show();
+    $("#speed").text(speedFactor.toString()+'x');
+    timer=setInterval(function(){
+        socket.emit('GET','')
+    }, interval);
+});
+
+$("#pause").click(function(){
+    $("#pause").hide();
+    $("#play").show();
+    $("#speedup").hide();
+    $("#slowdown").hide();
+    if (s.isForceAtlas2Running()) {
+        s.stopForceAtlas2(); }
+    clearInterval(timer);
+});
+
+$("#speedup").click(function(){
+    console.log('forward');
+    speedFactor=speedFactor*2;
+    interval=interval/2;
+    clearInterval(timer);
+    $("#speed").text(speedFactor.toString()+'x');
+    timer=setInterval(function(){
+        socket.emit('GET','')
+    }, interval);
+});
+
+$("#slowdown").click(function(){
+    console.log('backward');
+    speedFactor=speedFactor/2;
+    interval=interval*2;
+    clearInterval(timer);
+    $("#speed").text(speedFactor.toString()+'x');
+    timer=setInterval(function(){
+        socket.emit('GET','')
+    }, interval);
+});
+
 s.settings({
   edgeColor: 'default',
   defaultEdgeColor: 'grey',
@@ -88,12 +147,9 @@ socket.on('title', function(data) {
     $("h1").text(data);
 });
 
-timer=setInterval(function(){
-    socket.emit('GET','')
-}, 250);
-
 socket.on('none',function(data){
-    s.stopForceAtlas2();
+    if (s.isForceAtlas2Running()) {
+        s.stopForceAtlas2(); }
     clearInterval(timer);
 });
 </script>
