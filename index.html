@@ -61,7 +61,6 @@ $("#pause").click(function(){
 });
 
 $("#speedup").click(function(){
-    console.log('forward');
     speedFactor=speedFactor*2;
     interval=interval/2;
     clearInterval(timer);
@@ -72,7 +71,6 @@ $("#speedup").click(function(){
 });
 
 $("#slowdown").click(function(){
-    console.log('backward');
     speedFactor=speedFactor/2;
     interval=interval*2;
     clearInterval(timer);
@@ -85,12 +83,13 @@ $("#slowdown").click(function(){
 s.settings({
   edgeColor: 'default',
   defaultEdgeColor: 'grey',
+  zoomingRatio: 1.2
 });
 
-layoutconfig={adjustSizes:true, gravity:10, slowDown:10};
+layoutconfig={adjustSizes:true, gravity:1, slowDown:1, scalingRatio:2, strongGravityMode:true};
 
 socket.on('an',function(data){
-    s.graph.addNode({id: data.id, label: data.label, size: data.size, x: edgeNode.x, y: 0, color: data.color});
+    s.graph.addNode({id: data.id, label: data.label, size: data.size, x: edgeNode.x, y: 0, color: data.color, weight: 1});
     edgeNode=s.graph.nodes(data.id);
     if (s.isForceAtlas2Running()) {
         s.killForceAtlas2(); }
@@ -103,8 +102,10 @@ socket.on('ae',function(data){
     } else {
         s.graph.addEdge({id: data.source+'_'+data.target, source: data.source, target: data.target, weight: 1});
     }
-    s.graph.nodes(data.source).size=s.graph.nodes(data.source).size+0.1;
-    s.graph.nodes(data.target).size=s.graph.nodes(data.target).size+0.1;
+    s.graph.nodes(data.source).weight=s.graph.nodes(data.source).weight+1;
+    s.graph.nodes(data.source).size=Math.log(s.graph.nodes(data.source).weight)+1;
+    s.graph.nodes(data.target).weight=s.graph.nodes(data.target).weight+1;
+    s.graph.nodes(data.target).size=Math.log(s.graph.nodes(data.target).weight)+1;
     if (s.isForceAtlas2Running()) {
         s.killForceAtlas2(); }
     s.startForceAtlas2(layoutconfig);
@@ -115,14 +116,16 @@ socket.on('aenn',function(data){
                     label: data.source.label,
                     size: data.source.size,
                     x: edgeNode.x, y: 0,
-                    color: data.source.color});
+                    color: data.source.color,
+                    weight: 1});
     edgeNode=s.graph.nodes(data.source.id);
     s.graph.addNode({id: data.target.id,
                     label: data.target.label,
                     size: data.target.size,
                     x: s.graph.nodes(data.source.id).x+Math.random(),
                     y: s.graph.nodes(data.source.id).y+Math.random(),
-                    color: data.target.color});
+                    color: data.target.color,
+                    weight: 1});
     s.graph.addEdge({id: data.source.id+'_'+data.target.id, source: data.source.id, target: data.target.id, weight: 1});
     if (s.isForceAtlas2Running()) {
         s.killForceAtlas2(); }
@@ -135,9 +138,11 @@ socket.on('aen',function(data){
                     size: data.new.size,
                     x: s.graph.nodes(data.old).x+Math.random(),
                     y: s.graph.nodes(data.old).y+Math.random(),
-                    color: data.new.color});
+                    color: data.new.color,
+                    weight: 1});
     s.graph.addEdge({id: data.source+'_'+data.target, source: data.source, target: data.target, weight: 1});
-    s.graph.nodes(data.old).size=s.graph.nodes(data.old).size+0.1;
+    s.graph.nodes(data.old).weight=s.graph.nodes(data.old).weight+1;
+    s.graph.nodes(data.old).size=Math.log(s.graph.nodes(data.old).weight)+1;
     if (s.isForceAtlas2Running()) {
         s.killForceAtlas2(); }
     s.startForceAtlas2(layoutconfig);
@@ -148,8 +153,10 @@ socket.on('title', function(data) {
 });
 
 socket.on('none',function(data){
-    if (s.isForceAtlas2Running()) {
-        s.stopForceAtlas2(); }
-    clearInterval(timer);
+    setTimeout(function(){
+        if (s.isForceAtlas2Running()) {
+            s.stopForceAtlas2(); }
+        clearInterval(timer);
+    },10000);
 });
 </script>
