@@ -11,30 +11,75 @@
       position: absolute;
     }
   </style>
-  <div id="graph-container"></div>
+  <div id="graph-container"><p>Hello World!</p></div>
 </div>
 <script src="js/socket.io.js"></script>
 <script src="js/sigma.min.js"></script>
 <script src="js/sigma.layout.forceAtlas2.min.js"></script>
 
 <script>
-
+var edgeNode={x:0};
 var socket = io.connect('http://localhost:5000');
 var s = new sigma('graph-container');
-s.startForceAtlas2();
+s.settings({
+  edgeColor: 'default',
+  defaultEdgeColor: 'grey',
+});
+
+layoutconfig={adjustSizes:true, gravity:10, slowDown:10, scalingRatio:0.5};
+s.startForceAtlas2(layoutconfig);
 
 socket.on('an',function(data){
-    s.graph.addNode({id: data.id, label: data.label, size: data.size, x:data.x, y: data.y});
-    s.refresh();
+    s.graph.addNode({id: data.id, label: data.label, size: data.size, x: edgeNode.x, y: 0, color: data.color});
+    edgeNode=s.graph.nodes(data.id);
     s.killForceAtlas2();
-    s.startForceAtlas2();
+    s.startForceAtlas2(layoutconfig);
 });
 
 socket.on('ae',function(data){
-    s.graph.addEdge({id: data.id, source: data.source, target: data.target});
-    s.refresh();
+    if (typeof s.graph.edges(data.source+'_'+data.target) != 'undefined') {
+        s.graph.edges(data.source+'_'+data.target).weight++;
+    } else {
+        s.graph.addEdge({id: data.source+'_'+data.target, source: data.source, target: data.target, weight: 1});
+    }
+    s.graph.nodes(data.source).size=s.graph.nodes(data.source).size+0.1;
+    s.graph.nodes(data.target).size=s.graph.nodes(data.target).size+0.1;
+    //s.refresh();
     s.killForceAtlas2();
-    s.startForceAtlas2();
+    s.startForceAtlas2(layoutconfig);
+});
+
+socket.on('aenn',function(data){
+    s.graph.addNode({id: data.source.id,
+                    label: data.source.label,
+                    size: data.source.size,
+                    x: edgeNode.x, y: 0,
+                    color: data.source.color});
+    edgeNode=s.graph.nodes(data.source.id);
+    s.graph.addNode({id: data.target.id,
+                    label: data.target.label,
+                    size: data.target.size,
+                    x: s.graph.nodes(data.source.id).x+Math.random(),
+                    y: s.graph.nodes(data.source.id).y+Math.random(),
+                    color: data.target.color});
+    s.graph.addEdge({id: data.source.id+'_'+data.target.id, source: data.source.id, target: data.target.id, weight: 1});
+    //s.refresh();
+    s.killForceAtlas2();
+    s.startForceAtlas2(layoutconfig);
+});
+
+socket.on('aen',function(data){
+    s.graph.addNode({id: data.new.id,
+                    label: data.new.label,
+                    size: data.new.size,
+                    x: s.graph.nodes(data.old).x+Math.random(),
+                    y: s.graph.nodes(data.old).y+Math.random(),
+                    color: data.new.color});
+    s.graph.addEdge({id: data.source+'_'+data.target, source: data.source, target: data.target, weight: 1});
+    s.graph.nodes(data.old).size=s.graph.nodes(data.old).size+0.1;
+    //s.refresh();
+    s.killForceAtlas2();
+    s.startForceAtlas2(layoutconfig);
 });
 
 timer=setInterval(function(){
