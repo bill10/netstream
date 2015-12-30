@@ -22,6 +22,7 @@ def handle_connect():
     N=0
     E=0
     for t in sorted(df['Year'].unique()):
+        queue.append({'title': str(t)})
         df2=df[df['Year']==t]
         for i in xrange(df2.shape[0]):
             s=df2.iloc[i]['Contact PI / Project Leader']

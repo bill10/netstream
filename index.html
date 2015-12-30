@@ -11,11 +11,13 @@
       position: absolute;
     }
   </style>
-  <div id="graph-container"><p>Hello World!</p></div>
+  <h1> </h1>
+  <div id="graph-container"></div>
 </div>
 <script src="js/socket.io.js"></script>
 <script src="js/sigma.min.js"></script>
 <script src="js/sigma.layout.forceAtlas2.min.js"></script>
+<script src="js/jquery-1.11.3.min.js"></script>
 
 <script>
 var edgeNode={x:0};
@@ -26,13 +28,13 @@ s.settings({
   defaultEdgeColor: 'grey',
 });
 
-layoutconfig={adjustSizes:true, gravity:10, slowDown:10, scalingRatio:0.5};
-s.startForceAtlas2(layoutconfig);
+layoutconfig={adjustSizes:true, gravity:10, slowDown:10};
 
 socket.on('an',function(data){
     s.graph.addNode({id: data.id, label: data.label, size: data.size, x: edgeNode.x, y: 0, color: data.color});
     edgeNode=s.graph.nodes(data.id);
-    s.killForceAtlas2();
+    if (s.isForceAtlas2Running()) {
+        s.killForceAtlas2(); }
     s.startForceAtlas2(layoutconfig);
 });
 
@@ -44,8 +46,8 @@ socket.on('ae',function(data){
     }
     s.graph.nodes(data.source).size=s.graph.nodes(data.source).size+0.1;
     s.graph.nodes(data.target).size=s.graph.nodes(data.target).size+0.1;
-    //s.refresh();
-    s.killForceAtlas2();
+    if (s.isForceAtlas2Running()) {
+        s.killForceAtlas2(); }
     s.startForceAtlas2(layoutconfig);
 });
 
@@ -63,8 +65,8 @@ socket.on('aenn',function(data){
                     y: s.graph.nodes(data.source.id).y+Math.random(),
                     color: data.target.color});
     s.graph.addEdge({id: data.source.id+'_'+data.target.id, source: data.source.id, target: data.target.id, weight: 1});
-    //s.refresh();
-    s.killForceAtlas2();
+    if (s.isForceAtlas2Running()) {
+        s.killForceAtlas2(); }
     s.startForceAtlas2(layoutconfig);
 });
 
@@ -77,14 +79,18 @@ socket.on('aen',function(data){
                     color: data.new.color});
     s.graph.addEdge({id: data.source+'_'+data.target, source: data.source, target: data.target, weight: 1});
     s.graph.nodes(data.old).size=s.graph.nodes(data.old).size+0.1;
-    //s.refresh();
-    s.killForceAtlas2();
+    if (s.isForceAtlas2Running()) {
+        s.killForceAtlas2(); }
     s.startForceAtlas2(layoutconfig);
+});
+
+socket.on('title', function(data) {
+    $("h1").text(data);
 });
 
 timer=setInterval(function(){
     socket.emit('GET','')
-}, 500);
+}, 250);
 
 socket.on('none',function(data){
     s.stopForceAtlas2();

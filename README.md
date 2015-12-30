@@ -1,6 +1,10 @@
 # netstream
 Visualization of streaming network data
 
+Event protocols:
+
+Change title:  
+{'title': str}
 
 Add a node:
 {'an': {'id': str, 'label': str, 'x': num, 'y': num, 'size': num, 'type': ...}}  
