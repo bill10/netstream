@@ -86,7 +86,7 @@ s.settings({
   zoomingRatio: 1.2
 });
 
-layoutconfig={adjustSizes:true, gravity:1, slowDown:1, scalingRatio:2, strongGravityMode:true};
+layoutconfig={adjustSizes:true, gravity:1, slowDown:1, scalingRatio:1, strongGravityMode:true, worker: true, barnesHutOptimize: true};
 
 socket.on('an',function(data){
     s.graph.addNode({id: data.id, label: data.label, size: data.size, x: edgeNode.x, y: 0, color: data.color, weight: 1});
