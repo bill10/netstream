@@ -2,9 +2,9 @@
 Visualization of streaming network data
 
 How to run program:
-* Start simple python server: python -m SimpleHTTPServer 8000
+* Start simple python server: python -m SimpleHTTPServer 8000 (or python3 -m http.server)
 * Start flask server: python server.py
-* Visit localhost:8000 
+* Visit localhost:8000
 
 Event protocols:
 

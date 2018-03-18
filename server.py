@@ -24,7 +24,7 @@ def handle_connect():
     for t in sorted(df['Year'].unique()):
         queue.append({'title': str(t)})
         df2=df[df['Year']==t]
-        for i in xrange(df2.shape[0]):
+        for i in range(df2.shape[0]):
             s=df2.iloc[i]['Contact PI / Project Leader']
             t=df2.iloc[i]['Organization Name']
             if s not in node2id:
